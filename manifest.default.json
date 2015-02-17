@@ -8,9 +8,9 @@
     "webRequest",
     "webRequestBlocking",
     "https://api.gotinder.com/*",
-    "http://flamite.local/*"
+    "http://flamite.com/*"
   ],
-  "content_security_policy": "script-src 'self' https://api.gotinder.com 'unsafe-eval'; object-src 'self'",
+  "content_security_policy": "script-src 'self' https://api.gotinder.com https://ssl.google-analytics.com 'unsafe-eval'; object-src 'self'",
   "browser_action": {
     "default_icon": "icons/icon.png",
     "default_title": "Flamite"
@@ -30,9 +30,6 @@
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
   },
-  "externally_connectable": {
-    "matches": ["http://flamite.local/*"]
-  },
   "content_scripts": [
     {
       "matches" : ["https://www.facebook.com/v2.0/dialog/oauth*"],
@@ -48,10 +45,14 @@
       "css": ["ext/facebookAuth.css"]
     },
     {
-      "matches" : ["http://flamite.local/*"],
+      "matches" : ["http://flamite.com/*"],
       "run_at": "document_end",
       "js": [
-        "app/Flamite.js"
+        "vendor/jquery.min.js",
+        "vendor/handlebars.js",
+        "vendor/ember.min.js",
+        "app/js/templates.js",
+        "app/js/app.js"
       ]
     }
   ]

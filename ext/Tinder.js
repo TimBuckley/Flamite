@@ -22,7 +22,7 @@ Flamite.Tinder = (function(Flamite) {
       }
     }).fail(function(error) {
       if (error.status == 401) {
-        Flamite.openWelcomeTab(options ? options.tabId : null);
+        Flamite.Facebook.openAuthTab(options ? options.tabId : null);
       }
     });
   }
@@ -124,8 +124,8 @@ Flamite.Tinder = (function(Flamite) {
       return {requestHeaders: details.requestHeaders};
     }, {urls: ["*://api.gotinder.com/*"]}, ["blocking", "requestHeaders"]);
 
-    chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-      
+    chrome.runtime.onMessageExternal.addListener(function(request, sender, sendResponse) {
+
       // Tinder request
       if (request.type === 'request') {
         var prm = Flamite.Tinder.request(
@@ -146,8 +146,9 @@ Flamite.Tinder = (function(Flamite) {
 
       // matches
       else if (request.type === 'matches') {
+        console.log('des matchs');
         var last_activity_date = localStorage.getItem('last_activity_date');
-
+        console.log(request.last_activity_date, last_activity_date);
         if (request.last_activity_date == last_activity_date) {
           sendResponse({
             last_activity_date: last_activity_date
@@ -155,8 +156,9 @@ Flamite.Tinder = (function(Flamite) {
 
           return;
         }
-
+        console.log('go db');
         Flamite.IndexedDB.getMatches(null, null, function(matches) {
+          console.log('rep', matches);
           sendResponse({
             matches: matches,
             last_activity_date: last_activity_date

@@ -1,8 +1,7 @@
-build/
-bower_components/
-node_modules/
 flamite.sublime-project
 flamite.sublime-workspace
-app/js/config.js
+
+build/
+node_modules/
+
 Flamite.pem
-key.pem

@@ -1,6 +1,6 @@
 {
   "name": "Flamite",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "devDependencies": {
     "bower": "latest",
     "gulp": "latest",
@@ -8,7 +8,6 @@
     "gulp-sass": "latest",
     "gulp-watch": "latest",
     "gulp-concat": "latest",
-    "run-sequence": "latest",
-    "gulp-ember-handlebars": "latest"
+    "run-sequence": "latest"
   }
 }

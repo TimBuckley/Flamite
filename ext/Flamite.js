@@ -8,11 +8,11 @@ var Flamite = (function() {
   function openAppTab(tabId) {
     if (tabId) {
       chrome.tabs.update(tabId, {
-        url: 'http://flamite.com'
+        url: 'http://flamite.local'
       });
     } else {
       chrome.tabs.create({
-        url : 'http://flamite.com'
+        url : 'http://flamite.local'
       });
     }
   }
@@ -52,7 +52,7 @@ var Flamite = (function() {
   }
 
   function chromeEvent() {
-    chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    chrome.runtime.onMessageExternal.addListener(function(request, sender, sendResponse) {
 
       // get user account
       if (request.type === 'user') {
