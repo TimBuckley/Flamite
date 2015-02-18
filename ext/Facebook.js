@@ -10,7 +10,7 @@ Flamite.Facebook = (function(Flamite) {
     }, {
       tabId: tabId
     }).done(function(result) {
-      Flamite.setUser(result.user);
+      Flamite.Tinder.setUser(result.user);
       Flamite.Tinder.setToken(result.token);
       Flamite.openAppTab(tabId);
     });
@@ -40,9 +40,10 @@ Flamite.Facebook = (function(Flamite) {
   }
 
   return {
+    openAuthTab: openAuthTab,
+
     init: function() {
       chromeEvent();
-    },
-    openAuthTab: openAuthTab
+    }
   };
 })(Flamite);

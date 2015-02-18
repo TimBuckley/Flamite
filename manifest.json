@@ -19,7 +19,6 @@
     "scripts": [
       "vendor/jquery.min.js", 
       "ext/Flamite.js", 
-      "ext/IndexedDB.js", 
       "ext/Facebook.js", 
       "ext/Tinder.js", 
       "ext/background.js"
@@ -46,13 +45,6 @@
         "ext/facebookAuth.js"
       ],
       "css": ["ext/facebookAuth.css"]
-    },
-    {
-      "matches" : ["http://flamite.local/*"],
-      "run_at": "document_end",
-      "js": [
-        "app/Flamite.js"
-      ]
     }
   ]
 }

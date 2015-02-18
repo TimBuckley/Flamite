@@ -19,7 +19,6 @@ gulp.task('vendor', function() {
 gulp.task('build', function() {
   return runSequence('clean', ['vendor'], function() {
     return gulp.src([
-      './app/**/*',
       './ext/**/*',
       './manifest.json',
       './icons/*'
@@ -29,7 +28,6 @@ gulp.task('build', function() {
 
 gulp.task('watch', function() {
   gulp.watch([
-    './app/**/*',
     './ext/**/*',
     './manifest.json',
     './icons/*'

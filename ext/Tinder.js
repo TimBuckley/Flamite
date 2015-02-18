@@ -4,31 +4,44 @@
 
 Flamite.Tinder = (function(Flamite) {
   var token = false;
-  var updated = false;
-  var last_update = null;
+  var user = false;
 
   function request(path, method, data, options) {
+
+    if (options) {
+      tabId = options.tabId || null; 
+    }
+
+    if (!token) {
+      Flamite.Facebook.openAuthTab(tabId);
+    }
+
     return $.ajax({
       url: 'https://api.gotinder.com/' + path,
       type: method,
       data: data,
       beforeSend: function(request) {
-        if (path !== 'auth') {
-          request.setRequestHeader('X-Auth-Token', token);
-          request.setRequestHeader('os-version', 21);
-          request.setRequestHeader('app-version', 767);
-          request.setRequestHeader('platform', 'android');
+
+        if (path == 'auth') {
+          return;
         }
+
+        request.setRequestHeader('X-Auth-Token', token);
+        request.setRequestHeader('os-version', 21);
+        request.setRequestHeader('app-version', 767);
+        request.setRequestHeader('platform', 'android');
       }
     }).fail(function(error) {
-      if (error.status == 401) {
-        Flamite.Facebook.openAuthTab(options ? options.tabId : null);
+
+      // or error.status == 401
+      if (error.status != 200) {
+        Flamite.Facebook.openAuthTab(tabId);
       }
     });
   }
 
   function setToken(_token) {
-    localStorage.setItem('linter_token', _token);
+    localStorage.setItem('token', _token);
     token = _token;
   }
 
@@ -36,80 +49,16 @@ Flamite.Tinder = (function(Flamite) {
     return token;
   }
 
-  function updateTinderData(tabId, callback) {
-    var last_activity_date = localStorage.getItem('last_activity_date');
-    var user = Flamite.getUser();
+  function setUser(_user) {
+    user = _user;
+  }
 
-    // check if update is allow
-    if (updated || (last_update && last_update > (new Date().getTime() - 2000))) {
-      callback && callback(false);
-      return;
-    }
+  function getUser() {
+    return user;
+  }
 
-    // set settings
-    updated = true;
-    last_update = new Date().getTime();
-
-    // make Tinder update request
-    var prm = Flamite.Tinder.request('updates', 'POST', {
-      last_activity_date: last_activity_date ? last_activity_date : ''
-    }, {
-      tabId: tabId
-    });
-
-    prm.done(function(obj) {
-      var matchsNb = obj.matches.length;
-
-      // save all new matches
-      for (var i in obj.matches) {
-        var match = obj.matches[i];
-
-        (function(match, i) {
-          var os = Flamite.db.transaction(['matches'], 'readwrite').objectStore('matches');
-          var req = os.get(match['_id']);
-
-          req.onsuccess = function(e) {
-            var data = e.target.result;
-
-            if (data) {
-              data.messages = data.messages.concat(match.messages);
-              data.last_activity_date = match.last_activity_date;
-
-              // last message
-              var last_message = match.messages[match.messages.length - 1];
-              if (last_message && last_message.from != user._id) {
-                data.new_data = true;
-              } else {
-                data.new_data = false;
-              }
-
-              os.put(data);
-            } else {
-              os.add(match);
-            }
-
-            // refresh view
-            if ((matchsNb - 1) == i) {
-              updated = false;
-              callback && callback('done', true);
-            }
-          };
-        })(match, i);
-      }
-
-      if (matchsNb == 0) {
-        updated = false;
-        callback && callback('done', false);
-      }
-
-      // set settings
-      localStorage.setItem('last_activity_date', obj.last_activity_date);
-    })
-
-    prm.fail(function() {
-      updated = false;
-      callback && callback('fail');
-    });
+  function resetToken() {
+    localStorage.removeItem('token');
   }
 
   function chromeEvent() {
@@ -142,58 +91,8 @@ Flamite.Tinder = (function(Flamite) {
         prm.fail(function(obj) {
           sendResponse(false);
         });
-      }
 
-      // matches
-      else if (request.type === 'matches') {
-        console.log('des matchs');
-        var last_activity_date = localStorage.getItem('last_activity_date');
-        console.log(request.last_activity_date, last_activity_date);
-        if (request.last_activity_date == last_activity_date) {
-          sendResponse({
-            last_activity_date: last_activity_date
-          });
-
-          return;
-        }
-        console.log('go db');
-        Flamite.IndexedDB.getMatches(null, null, function(matches) {
-          console.log('rep', matches);
-          sendResponse({
-            matches: matches,
-            last_activity_date: last_activity_date
-          });
-        });
-      }
-
-      // match
-      else if (request.type === 'match') {
-        var last_activity_date = localStorage.getItem('last_activity_date');
-
-        if (request.force == false && request.last_activity_date == last_activity_date) {
-          sendResponse({
-            last_activity_date: last_activity_date
-          });
-
-          return;
-        }
-
-        var os = Flamite.db.transaction(['matches'], 'readwrite').objectStore('matches');
-        var req = os.get(request.id);
-
-        req.onsuccess = function(e) {
-          var data = e.target.result;
-
-          if (data) {
-            data.new_data = false;
-            os.put(data);
-          }
-
-          sendResponse({
-            match: data,
-            last_activity_date: last_activity_date
-          });
-        };
+        return true;
       }
 
       // post message
@@ -203,25 +102,33 @@ Flamite.Tinder = (function(Flamite) {
         });
 
         return false;
-      }
+      } 
 
-      // update data
-      else if (request.type === 'update') {
-        updateTinderData(sender.tab.id);
-        return false;
-      }
+      // get tinder user
+      else if (request.type == 'getUser') {
+        var user = getUser();
 
-      return true;
+        if (user) {
+          sendResponse(user);
+          return;
+        } else {
+          Flamite.Facebook.openAuthTab(sender.tab.id);
+        }
+      }
     });
   }
 
   return {
-    init: function() {
-      token = localStorage.getItem('linter_token');
-      chromeEvent();
-    },
     request: request,
     setToken: setToken,
-    getToken: getToken
+    getToken: getToken,
+    setUser: setUser,
+    getUser: getUser,
+
+    init: function() {
+      token = localStorage.getItem('token');
+
+      chromeEvent();
+    }
   };
 })(Flamite);
