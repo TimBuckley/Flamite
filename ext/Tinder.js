@@ -57,7 +57,9 @@ Flamite.Tinder = (function(Flamite) {
     return user;
   }
 
-  function resetToken() {
+  function reset() {
+    user = null;
+    token = null;
     localStorage.removeItem('token');
   }
 
@@ -95,6 +97,12 @@ Flamite.Tinder = (function(Flamite) {
         return true;
       }
 
+      else if (request.type === 'reset') {
+        reset();
+        sendResponse(true);
+        return;
+      }
+
       // post message
       else if (request.type === 'message_post') {
         Flamite.Tinder.request('user/matches/' + request.id, 'POST', {
@@ -110,10 +118,12 @@ Flamite.Tinder = (function(Flamite) {
 
         if (user) {
           sendResponse(user);
-          return;
         } else {
-          Flamite.Facebook.openAuthTab(sender.tab.id);
+          sendResponse(null);
+          //Flamite.Facebook.openAuthTab(sender.tab.id);
         }
+
+        return;
       }
     });
   }

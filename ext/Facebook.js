@@ -32,10 +32,15 @@ Flamite.Facebook = (function(Flamite) {
         }
       }
 
+    });
+
+    chrome.runtime.onMessageExternal.addListener(function(request, sender, sendResponse) {
+
       // open Facebook auth tab
-      else if (request.type === 'openFacebookAuthTab') {
+      if (request.type === 'openFacebookAuthTab') {
         openAuthTab(sender.tab.id);
       }
+
     });
   }
 
